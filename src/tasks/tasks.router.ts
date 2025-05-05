@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 
 import { TasksController } from './tasks.controller';
+import { PartialTaskWithId, Task } from './task.interface';
 
 @injectable()
 export class TasksRouter {
@@ -15,19 +16,35 @@ export class TasksRouter {
   }
 
   private initializeRoutes() {
-    this.router.get('/', (req: Request, res: Response) => {
-      const newTask = this.taskController.handleGetTasks();
-      res.json(newTask);
+    this.router.get('/', async (req: Request, res: Response) => {
+      const tasks = await this.taskController.handleGetTasks(
+        req,
+        res
+      );
+      res.json(tasks);
     });
 
-    this.router.post('/create', (req: Request, res: Response) => {
-      const newTask = this.taskController.handlePostTasks();
-      res.json(newTask);
-    });
+    this.router.post(
+      '/create',
+      async (req: Request<{}, {}, Task>, res: Response) => {
+        const newTask = await this.taskController.handlePostTasks(
+          req,
+          res
+        );
+        res.json(newTask);
+      }
+    );
 
-    this.router.patch('/update', (req: Request, res: Response) => {
-      const newTask = this.taskController.handlePatchTasks();
-      res.json(newTask);
-    });
+    this.router.patch(
+      '/update',
+      async (
+        req: Request<{}, {}, PartialTaskWithId>,
+        res: Response
+      ) => {
+        const updatedTask =
+          await this.taskController.handlePatchTasks(req, res);
+        res.json(updatedTask);
+      }
+    );
   }
 }
